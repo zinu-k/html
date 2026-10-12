@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JDK21 업그레이드판 로컬 개발 환경 설치 안내</title>
+  <style>
+    body{font-family:'Segoe UI','Malgun Gothic',sans-serif;line-height:1.7;max-width:860px;margin:40px auto;padding:0 20px;color:#222}
+    h1{border-bottom:3px solid #4a90d9;padding-bottom:8px}
+    h2{margin-top:32px;border-left:4px solid #4a90d9;padding-left:10px}
+    h3{margin-top:22px}
+    code{background:#f3f3f3;padding:2px 5px;border-radius:4px;font-family:Consolas,monospace}
+    pre{background:#1e1e1e;color:#e6e6e6;padding:14px;border-radius:6px;overflow-x:auto}
+    pre code{background:none;color:inherit;padding:0}
+    table{border-collapse:collapse;width:100%;margin:12px 0}
+    th,td{border:1px solid #ccc;padding:10px 14px;text-align:left;vertical-align:middle;line-height:1.6}
+    table.repo td{white-space:nowrap}
+    table.repo td:nth-child(2) code{font-size:0.85em;background:none;padding:0}
+    th{background:#f0f6fc}
+    blockquote{border-left:4px solid #f0ad4e;background:#fff8ec;margin:12px 0;padding:8px 14px}
+    .meta{color:#888;font-size:0.9em}
+  </style>
+</head>
+<body>
+  <h1>JDK21 업그레이드판 로컬 개발 환경 설치 안내</h1>
+  <p class="meta">작성일: 2026-10-12 · 대상: uCare MOBIS 앱 JDK 21 업그레이드판을 자기 PC 에서 빌드·실행할 개발자 (Windows 기준)</p>
+
+  <h2>1. 개요</h2>
+  <p>uCare MOBIS 앱을 JDK 11 · Spring Boot 2.7 · Tomcat 9 에서 <b>JDK 21 · Spring Boot 3.5.6 · Spring 6.2.19 · eGovFrame 5.0.2 · Jakarta EE 10 · Tomcat 10.1.60</b> 으로 올린 판입니다. 이 문서는 저장소를 받아 자기 PC 에서 빌드하고 띄우기까지의 절차입니다.</p>
+  <table>
+    <tr><th>항목</th><th>판</th></tr>
+    <tr><td>JDK (실행·빌드)</td><td>21 (Temurin, 검증한 판 21.0.12.1+1). 컴파일 결과는 Java 17 바이트코드</td></tr>
+    <tr><td>Gradle</td><td>8.14.5 — 저장소의 <code>gradlew</code> 가 자동으로 받음(따로 설치 안 함)</td></tr>
+    <tr><td>Spring Boot / Spring</td><td>3.5.6 / 6.2.19</td></tr>
+    <tr><td>eGovFrame</td><td>5.0.2</td></tr>
+    <tr><td>Tomcat</td><td>10.1.60 (내장·외장 모두)</td></tr>
+  </table>
+
+  <h2>2. 저장소</h2>
+  <table class="repo">
+    <tr><th>구분</th><th>주소</th><th>설명</th></tr>
+    <tr><td><b>어플</b></td><td><code>https://gitlab.nexfron.com:16060/hyundai-mobis/ucare-mobis-app-5.0</code></td><td>앱 소스 (<code>main</code>)</td></tr>
+    <tr><td><b>코어</b></td><td><code>https://gitlab.nexfron.com:16060/hyundai-mobis-core/ucare_app_core_v5.0_mobis</code></td><td>일반 개발자 접근 불가</td></tr>
+  </table>
+  <p>앱은 어플 저장소 <code>libs\</code> 의 코어 jar 를 쓰므로 개발에는 어플 저장소만 있으면 됩니다. 커밋·push 방법(브랜치, MR 여부)은 담당자 안내를 따릅니다.</p>
+
+  <h2>3. 다운로드</h2>
+  <table>
+    <tr><th>무엇</th><th>받는 곳</th><th>언제 필요</th></tr>
+    <tr><td>JDK 21 (Temurin)</td><td><a href="https://adoptium.net/temurin/releases/?version=21&amp;package=jdk">https://adoptium.net/temurin/releases/?version=21&amp;package=jdk</a><br><span class="meta">Windows · x64 · JDK 를 고릅니다(.msi 또는 .zip)</span></td><td>항상</td></tr>
+    <tr><td>Tomcat 10.1.60</td><td><a href="https://archive.apache.org/dist/tomcat/tomcat-10/v10.1.60/bin/apache-tomcat-10.1.60-windows-x64.zip">https://archive.apache.org/dist/tomcat/tomcat-10/v10.1.60/bin/apache-tomcat-10.1.60-windows-x64.zip</a></td><td>외장 Tomcat 에서 ROOT.war 를 확인할 때만(7절). 평소 개발은 내장 Tomcat(bootRun)으로 충분</td></tr>
+    <tr><td>Git for Windows</td><td>사내 표준 설치본 또는 <a href="https://git-scm.com/download/win">https://git-scm.com/download/win</a></td><td>항상</td></tr>
+  </table>
+
+  <h2>4. 담당자에게 받을 것</h2>
+  <table>
+    <tr><th>무엇</th><th>왜</th></tr>
+    <tr><td>GitLab 어플 저장소 읽기 권한</td><td>clone</td></tr>
+    <tr><td><b>내 PC 용 uCare 라이선스 파일</b> <code>ucareLicense.dat</code></td><td>앱이 기동할 때 <b>PC 의 IP 와 만료일</b>을 검사해, 맞지 않으면 기동을 멈춥니다. 저장소에 들어 있는 파일은 다른 PC 용이라 그대로는 기동이 거부됩니다. 내 PC IP 로 발급받아야 합니다(VPN 을 쓰면 기준 IP 를 담당자와 정합니다)</td></tr>
+    <tr><td>사내망 자리 또는 VPN</td><td>앱이 기동하면서 바로 개발 DB(MSSQL)에 접속합니다. DB 에 닿지 않으면 기동이 실패합니다</td></tr>
+    <tr><td>화면 로그인 계정</td><td>개발 DB 에 등록된 계정. 기동에는 필요 없고 화면을 쓸 때 필요합니다(로컬 설정은 OTP 꺼짐)</td></tr>
+    <tr><td>(사내 프록시가 있으면) 프록시 주소</td><td>첫 빌드 때 인터넷에서 Gradle·라이브러리를 받습니다(9절)</td></tr>
+  </table>
+
+  <h2>5. 설치·실행 절차 (내장 Tomcat)</h2>
+
+  <h3>5-1. JDK 21 설치와 JAVA_HOME</h3>
+  <p>JDK 21 을 설치한 뒤 시스템 환경 변수 <code>JAVA_HOME</code> 을 JDK 21 폴더로 둡니다. 아래는 설치 폴더가 <code>C:\Java\jdk-21.0.12.1+1</code> 인 예입니다(명령 프롬프트, 새 창에서 적용).</p>
+  <pre><code>setx JAVA_HOME "C:\Java\jdk-21.0.12.1+1"
+
+REM 새 명령 프롬프트를 열고 확인
+"%JAVA_HOME%\bin\java" -version</code></pre>
+  <p>다른 프로젝트 때문에 <code>JAVA_HOME</code> 을 JDK 11 로 두어야 한다면, 바꾸지 말고 Gradle 명령마다 <code>"-Dorg.gradle.java.home=C:\Java\jdk-21.0.12.1+1"</code> 을 붙여도 됩니다.</p>
+
+  <h3>5-2. 소스 받기</h3>
+  <pre><code>git clone https://gitlab.nexfron.com:16060/hyundai-mobis/ucare-mobis-app-5.0.git
+cd ucare-mobis-app-5.0</code></pre>
+
+  <h3>5-3. 라이선스 파일 넣기</h3>
+  <p>담당자에게 받은 내 PC 용 파일로 덮어쓴 뒤, 이 파일이 커밋되지 않도록 표시합니다.</p>
+  <pre><code>copy /Y &lt;받은 파일 경로&gt;\ucareLicense.dat src\main\resources\config\ucareLicense.dat
+git update-index --skip-worktree src/main/resources/config/ucareLicense.dat</code></pre>
+
+  <h3>5-4. 로그·업로드 폴더</h3>
+  <p>로컬 설정은 로그와 업로드 파일을 <code>D:\UCARE_PROJECT_4.2_64bit\ucareFile\</code> 아래에 씁니다. D: 드라이브가 있으면 폴더를 만들어 둡니다(하위 폴더는 앱이 만듭니다). D: 드라이브가 없으면 9절의 「D: 드라이브가 없을 때」를 봅니다.</p>
+  <pre><code>mkdir D:\UCARE_PROJECT_4.2_64bit\ucareFile</code></pre>
+
+  <h3>5-5. 빌드 확인</h3>
+  <p>처음 실행하면 Gradle 8.14.5 와 라이브러리(수백 MB)를 내려받습니다. 두 번째부터는 받아 둔 것을 씁니다.</p>
+  <pre><code>gradlew.bat compileJava</code></pre>
+  <p><code>BUILD SUCCESSFUL</code> 이 나오면 됩니다.</p>
+
+  <h3>5-6. 실행 (bootRun)</h3>
+  <pre><code>gradlew.bat bootRun --args="--spring.profiles.active=local --ucareif.sap.enabled=false"</code></pre>
+  <ul>
+    <li>로그에 <code>Started UcareBootApplication</code> 이 나오면 브라우저로 <b><code>https://localhost:8080</code></b> 을 엽니다. 자체 서명 인증서라 경고가 한 번 뜨는데 「계속」을 누르면 됩니다(http 로 열면 400).</li>
+    <li><code>--spring.profiles.active=local</code> 은 꼭 줍니다. 빠지면 설정 값을 찾지 못해 기동이 실패합니다.</li>
+    <li><code>--ucareif.sap.enabled=false</code> 는 SAP 연동 라이브러리가 없어서 끄는 것입니다(SAP 호출 화면만 동작하지 않음).</li>
+    <li>끌 때는 <code>Ctrl+C</code>.</li>
+  </ul>
+
+  <h3>5-7. IDE 에서 실행할 때</h3>
+  <ul>
+    <li>저장소 폴더를 <b>Gradle 프로젝트</b>로 가져옵니다(IDE 설정 파일은 저장소에 없습니다).</li>
+    <li><b>Lombok</b>: IntelliJ 는 Lombok 플러그인과 Settings → Build → Compiler → Annotation Processors 의 「Enable annotation processing」을 켭니다. Eclipse/STS 는 lombok.jar 를 설치합니다.</li>
+    <li>가장 간단한 방법은 IDE 의 Gradle 창에서 <code>bootRun</code> 을 실행하는 것입니다(위 인자를 실행 설정의 Arguments 에 넣음).</li>
+    <li>Application 으로 직접 실행하려면:
+      <ul>
+        <li>Main class: <code>com.nexfron.core.UcareBootApplication</code></li>
+        <li>VM options: <code>-Djava.net.preferIPv4Stack=true -Dspring.profiles.active=local -Ducareif.sap.enabled=false</code></li>
+        <li>Working directory: 저장소 최상위 폴더</li>
+        <li>IntelliJ 는 「Add dependencies with "provided" scope to classpath」를 켭니다(내장 Tomcat·JSP 엔진이 provided 범위)</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h2>6. 포트를 8080 에서 바꿀 때</h2>
+  <p>포트를 바꾸면 자기 자신을 가리키는 주소 설정도 같은 포트로 맞춰야 합니다. 맞추지 않으면 첨부가 있는 글 삭제 등이 실패합니다. 예: 9090 으로 띄울 때 bootRun 인자에 더합니다.</p>
+  <pre><code>--server.port=9090 --core.config.sys.url-code-reload=https://localhost:9090 --core.config.prj.kms-server-url=https://localhost:9090 --core.config.prj.url-com-cntnts=https://localhost:9090/kms/com/comCntntsDetail/</code></pre>
+
+  <h2>7. (선택) 외장 Tomcat 10.1.60 에서 ROOT.war 확인</h2>
+  <p>운영은 외장 Tomcat 10.1.60 에 <code>ROOT.war</code> 를 올리는 방식입니다. 같은 방식으로 확인하고 싶을 때만 합니다. <b>Tomcat 9 는 jakarta 를 지원하지 않아 쓸 수 없습니다.</b></p>
+
+  <h3>7-1. ROOT.war 만들기</h3>
+  <pre><code>gradlew.bat clean
+gradlew.bat war -Pprofile=local</code></pre>
+  <p>Windows 에서는 결과가 <code>D:\UCARE_PROJECT_4.2_64bit\ROOT.war</code> 로 나옵니다. 프로필(local·dev·prd)을 바꿔 빌드할 때는 <b>매번 <code>clean</code> 을 먼저</b> 합니다. 앞 프로필의 라이선스·에디터 파일이 build 폴더에 남아 섞일 수 있습니다.</p>
+
+  <h3>7-2. Tomcat 준비</h3>
+  <ol>
+    <li>zip 을 원하는 곳에 풉니다(예: <code>C:\Tomcat\apache-tomcat-10.1.60</code>).</li>
+    <li><code>webapps\ROOT</code> 폴더(기본 첫 화면)를 지우고, 7-1 의 <code>ROOT.war</code> 를 <code>webapps\</code> 에 복사합니다.</li>
+    <li>https 용 자체 서명 키를 만듭니다(비밀번호는 아무 값이나 정해서 아래 server.xml 에도 같은 값을 넣습니다).
+      <pre><code>"%JAVA_HOME%\bin\keytool" -genkeypair -noprompt -alias tomcat -keyalg RSA -keysize 2048 -validity 3650 -dname "CN=localhost" -ext "SAN=dns:localhost,ip:127.0.0.1" -storetype PKCS12 -keystore conf\localhost.p12 -storepass &lt;비밀번호&gt; -keypass &lt;비밀번호&gt;</code></pre>
+    </li>
+  </ol>
+
+  <h3>7-3. conf\server.xml — Connector</h3>
+  <p>기본 8080 Connector 를 아래로 바꿉니다. <b>업로드 한도 세 값(maxPartCount·maxPartHeaderSize·maxPostSize)은 꼭 넣습니다.</b> 빠지면 Tomcat 기본값(파트 50개·파트 헤더 512바이트)이 걸려 첨부가 많은 저장, 긴 한글 파일명, 큰 편집기 본문이 「시스템 오류」로 거부됩니다.</p>
+  <pre><code>&lt;Connector port="8080" protocol="org.apache.coyote.http11.Http11NioProtocol"
+           SSLEnabled="true" scheme="https" secure="true"
+           connectionTimeout="20000" URIEncoding="UTF-8"
+           maxPostSize="20971520" maxSwallowSize="20971520"
+           maxPartCount="500" maxPartHeaderSize="2048"&gt;
+  &lt;SSLHostConfig&gt;
+    &lt;Certificate certificateKeystoreFile="conf/localhost.p12"
+                 certificateKeystorePassword="&lt;비밀번호&gt;"
+                 certificateKeystoreType="PKCS12" type="RSA" /&gt;
+  &lt;/SSLHostConfig&gt;
+&lt;/Connector&gt;</code></pre>
+
+  <h3>7-4. conf\context.xml — 세션 쿠키</h3>
+  <p><code>&lt;Context&gt;</code> 에 <code>useHttpOnly="true"</code> 를 주고, 안에 다음 세 줄을 넣습니다(외장 Tomcat 은 Spring 의 쿠키 설정을 쓰지 않으므로 여기서 같은 값을 줍니다).</p>
+  <pre><code>&lt;Context useHttpOnly="true"&gt;
+  ... (기존 내용) ...
+  &lt;Manager pathname="" /&gt;
+  &lt;CookieProcessor className="org.apache.tomcat.util.http.Rfc6265CookieProcessor" sameSiteCookies="lax" /&gt;
+  &lt;JarScanner scanClassPath="false" /&gt;
+&lt;/Context&gt;</code></pre>
+
+  <h3>7-5. bin\setenv.bat (새로 만듦)</h3>
+  <pre><code>set "JAVA_HOME=C:\Java\jdk-21.0.12.1+1"
+set "CATALINA_OPTS=-Dspring.profiles.active=local -Ducareif.sap.enabled=false -Djava.net.preferIPv4Stack=true -Dfile.encoding=UTF-8"</code></pre>
+
+  <h3>7-6. 실행</h3>
+  <pre><code>cd C:\Tomcat\apache-tomcat-10.1.60
+bin\catalina.bat run</code></pre>
+  <p>WAR 를 펼친 뒤 <code>https://localhost:8080</code> 을 엽니다. 내장 Tomcat(5-6)과 같은 포트라 둘을 동시에 띄우지 않습니다.</p>
+
+  <h2>8. 체크리스트</h2>
+  <ul>
+    <li>[ ] <code>java -version</code> 이 21 로 나온다</li>
+    <li>[ ] 어플 저장소를 clone 했다 (<code>main</code>)</li>
+    <li>[ ] 내 PC 용 <code>ucareLicense.dat</code> 를 넣고 <code>--skip-worktree</code> 를 걸었다</li>
+    <li>[ ] 사내망 또는 VPN 에 연결돼 있다</li>
+    <li>[ ] <code>D:\UCARE_PROJECT_4.2_64bit\ucareFile</code> 이 있다 (또는 9절 대체 방법)</li>
+    <li>[ ] <code>gradlew.bat compileJava</code> 가 성공한다</li>
+    <li>[ ] bootRun 로그에 <code>UCARE LICENSE IS VALID</code> 와 <code>Started UcareBootApplication</code> 이 나온다</li>
+    <li>[ ] <code>https://localhost:8080</code> 로그인 화면이 열리고, 받은 계정으로 로그인된다</li>
+    <li>[ ] (외장 확인 때) server.xml 에 업로드 한도 세 값이 들어 있다</li>
+  </ul>
+
+  <h2>9. 문제가 생기면</h2>
+  <table>
+    <tr><th>증상</th><th>원인과 해결</th></tr>
+    <tr><td><code>Dependency requires at least JVM runtime version 17. This build uses a Java 11 JVM.</code></td><td>Gradle 이 JDK 11 로 돌고 있습니다. <code>JAVA_HOME</code> 을 JDK 21 로 바꾸거나 명령에 <code>"-Dorg.gradle.java.home=&lt;JDK 21 경로&gt;"</code> 를 붙입니다</td></tr>
+    <tr><td><code>Java home supplied is invalid</code> (<code>D:/UCARE_PROJECT_5.0_64bit/...</code> 경로가 보임)</td><td>예전 커밋을 받았습니다. 최신 <code>main</code> 으로 <code>git pull</code> 하거나, 명령에 <code>"-Dorg.gradle.java.home=&lt;JDK 21 경로&gt;"</code> 를 붙입니다</td></tr>
+    <tr><td>기동 로그에 <code>UCARE LICENSE FILE NOT EXIST OR INCORRECT LICENSE KEY</code> / <code>UCARE LICENSE IS NOT VALID</code> / <code>UCARE LICENSE EXPIRATION DATE HAS PASSED</code></td><td>라이선스 파일이 없거나, 내 PC IP 용이 아니거나, 기간이 지났습니다. 담당자에게 내 PC IP 로 다시 받습니다. VPN 을 켜고 끄면 IP 가 바뀔 수 있습니다</td></tr>
+    <tr><td>기동 중 DB 연결 시간 초과 (<code>HikariPool</code>, <code>SQLServerException</code>)</td><td>개발 DB 에 닿지 않습니다. 사내망·VPN 연결을 확인합니다</td></tr>
+    <tr><td><code>Could not resolve placeholder ...</code></td><td><code>spring.profiles.active=local</code> 이 빠졌습니다(5-6, 5-7)</td></tr>
+    <tr><td>D: 드라이브가 없을 때</td><td>로그 경로는 <code>src\main\resources\config\logback-spring-local.xml</code> 안에 <code>D:/UCARE_PROJECT_4.2_64bit/ucareFile/logs/...</code> 로 적혀 있어 실행 인자로는 바뀌지 않습니다. 이 파일을 저장소 밖(예: <code>C:\ucare\logback-local.xml</code>)으로 복사해 <code>FILE_DIR</code>·<code>BASE_CTI_DIR</code> 두 값을 바꾼 뒤 실행 인자에 더합니다(원본 파일은 고치지 않음):
+      <pre><code>--logging.config=file:C:/ucare/logback-local.xml --file.path.server-upload=C:/ucare/ucareFile</code></pre>
+      단, 첨부 이미지 표시 경로(<code>/upload/**</code>)는 코드에 D: 경로로 고정돼 있어, D: 없이는 업로드한 이미지 미리보기가 보이지 않습니다</td></tr>
+    <tr><td>첫 빌드에서 라이브러리 내려받기 실패 (특히 <code>org.egovframe</code>)</td><td>인터넷이 막혀 있거나 프록시가 필요합니다. eGov 라이브러리는 <code>maven.egovframe.go.kr</code> 에서만 받을 수 있습니다. 프록시가 있으면 <code>%USERPROFILE%\.gradle\gradle.properties</code> 에 넣습니다:
+      <pre><code>systemProp.http.proxyHost=&lt;프록시 주소&gt;
+systemProp.http.proxyPort=&lt;포트&gt;
+systemProp.https.proxyHost=&lt;프록시 주소&gt;
+systemProp.https.proxyPort=&lt;포트&gt;</code></pre></td></tr>
+    <tr><td><code>Port 8080 was already in use</code></td><td>다른 프로그램(또는 다른 Tomcat)이 8080 을 쓰고 있습니다. 그것을 끄거나 6절처럼 포트를 바꿉니다</td></tr>
+    <tr><td>브라우저 「안전하지 않음」 경고</td><td>로컬 자체 서명 인증서라 정상입니다. 「계속」을 누릅니다</td></tr>
+    <tr><td>서버를 끈 뒤 열어 둔 화면에 「서버와 통신 중 장애가 발생 하였습니다」가 1분마다 뜸</td><td>우측 알림 확인이 1분마다 서버에 묻기 때문입니다. 서버가 꺼져 있으면 정상입니다. 탭을 닫습니다</td></tr>
+    <tr><td>편집기(Synap)에 「유효하지 않은 라이선스입니다」</td><td>Synap 에디터 라이선스는 접속 호스트 이름 기준이라 <code>localhost</code> 에서는 이 안내가 뜰 수 있습니다(포트와 무관). 원본에서도 같은 동작이며, 운영은 운영 도메인용 라이선스를 씁니다</td></tr>
+    <tr><td>메인 화면 콘솔에 <code>Stately is not defined</code></td><td>원본에도 있던 동작입니다(부분녹취 스크립트). 화면 사용에는 영향이 없습니다</td></tr>
+    <tr><td>첨부 업로드·편집기 저장이 「시스템 오류」 (외장 Tomcat 에서만)</td><td>server.xml Connector 에 업로드 한도 세 값이 빠졌습니다(7-3)</td></tr>
+  </table>
+
+  <h2>10. 참고</h2>
+  <ul>
+    <li>원본 대비 바뀐 내용 전체: PLANS/NOTE 「020 원본에서 최종 업그레이드까지 변경사항 한눈에 보기」</li>
+    <li>운영 반영 절차(외장 Tomcat 2노드): PLANS/009 2차 운영 인계서</li>
+    <li>실행 VM 옵션 예: 저장소 <code>doc\Vm_Arguments.txt</code></li>
+  </ul>
+</body>
+</html>
